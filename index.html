@@ -260,7 +260,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
         }
 
@@ -431,6 +431,65 @@
             font-style: italic;
         }
 
+        /* --- AI Tools --- */
+        .ai-tools {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .ai-tool-btn {
+            background: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ai-tool-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);
+        }
+
+        .ai-tool-btn > i {
+            color: var(--primary);
+            font-size: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .ai-tool-btn span {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ai-tool-btn strong {
+            color: var(--slate-900);
+            font-size: 13px;
+        }
+
+        .ai-tool-btn small {
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 700px) {
+            .ai-tools {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        
         /* --- Error Banner --- */
         #error {
             background: #fef2f2;
@@ -457,6 +516,219 @@
             }
             .results-grid { grid-template-columns: 1fr; }
         }
+        /* --- AI Modals --- */
+        .ai-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            backdrop-filter: blur(3px);
+        }
+
+        .ai-modal.active {
+            display: flex;
+        }
+
+        .ai-modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 620px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .ai-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            border: none;
+            background: var(--slate-100);
+            color: var(--slate-700);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .ai-modal-close:hover {
+            background: var(--slate-200);
+        }
+
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-right: 40px;
+            margin-bottom: 24px;
+        }
+
+        .ai-modal-header > i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .ai-modal-header h2 {
+            font-size: 20px;
+            color: var(--slate-900);
+            margin-bottom: 4px;
+        }
+
+        .ai-modal-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .ai-modal-body h3 {
+            font-size: 12px;
+            color: var(--slate-700);
+            margin: 20px 0 8px;
+        }
+
+        .ai-modal-body p {
+            font-size: 13px;
+            color: var(--slate-700);
+            line-height: 1.6;
+        }
+
+        .ai-modal-body ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ai-modal-body li {
+            font-size: 13px;
+            color: var(--slate-700);
+            line-height: 1.5;
+            padding: 9px 0 9px 22px;
+            position: relative;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .ai-modal-body li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .modal-action {
+            background: var(--primary-light);
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 13px;
+            color: var(--slate-700);
+            line-height: 1.5;
+        }
+        /* --- Interview Questions --- */
+        .interview-question {
+            display: flex;
+            gap: 14px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .interview-question:last-child {
+            border-bottom: none;
+        }
+
+        .question-number {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .question-content {
+            flex: 1;
+        }
+
+        .question-text {
+            margin: 3px 0 12px;
+            color: var(--slate-800);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .answer-toggle {
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            padding: 0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .answer-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .answer-toggle .fa-chevron-down {
+            font-size: 9px;
+        }
+
+        .suggested-answer {
+            display: none;
+            margin-top: 12px;
+            padding: 14px;
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+        }
+
+        .suggested-answer.visible {
+            display: block;
+        }
+
+        .suggested-answer strong {
+            display: block;
+            color: var(--slate-700);
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .suggested-answer p {
+            margin: 0;
+            color: var(--slate-700);
+            font-size: 13px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -464,7 +736,7 @@
 <header class="saas-nav">
     <div class="nav-brand">
         <div class="nav-brand-icon"><i class="fas fa-layer-group"></i></div>
-        <span>ScreenAgent.ai</span>
+        <span>ResumeIQ</span>
     </div>
     <div class="nav-meta">
         <span>AI Assistant</span>
@@ -563,6 +835,23 @@
                         <h3><i class="fas fa-times-circle"></i> Missing Skills &amp; Keywords</h3>
                         <div class="keywords" id="missing"></div>
                     </div>
+                    <div class="ai-tools">
+                    <button type="button" class="ai-tool-btn" id="feedbackBtn">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>
+                            <strong>AI Feedback</strong>
+                            <small>Get personalized resume improvements</small>
+                        </span>
+                    </button>
+
+                    <button type="button" class="ai-tool-btn" id="interviewBtn">
+                        <i class="fas fa-brain"></i>
+                        <span>
+                            <strong>AI Interview Prep</strong>
+                            <small>Generate role-specific interview questions</small>
+                        </span>
+                    </button>
+                </div>
                 </div>
 
             </div>
@@ -570,7 +859,59 @@
 
     </section>
 </main>
+<!-- AI Feedback Modal -->
+<div class="ai-modal" id="feedbackModal">
+    <div class="ai-modal-content">
+        <button class="ai-modal-close" type="button" data-close="feedbackModal">
+            &times;
+        </button>
 
+        <div class="ai-modal-header">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <div>
+                <h2>AI Feedback</h2>
+                <p>Personalized improvements for this application</p>
+            </div>
+        </div>
+
+        <div class="ai-modal-body">
+            <h3>Summary</h3>
+            <p id="modalFeedbackSummary"></p>
+
+            <h3>What to Improve</h3>
+            <ul id="modalFeedbackImprovements"></ul>
+
+            <h3>Recommended Action</h3>
+            <div class="modal-action" id="modalFeedbackAction"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- AI Interview Prep Modal -->
+<div class="ai-modal" id="interviewModal">
+    <div class="ai-modal-content">
+        <button class="ai-modal-close" type="button" data-close="interviewModal">
+            &times;
+        </button>
+
+        <div class="ai-modal-header">
+            <i class="fas fa-brain"></i>
+            <div>
+                <h2>AI Interview Prep</h2>
+                <p>Questions tailored to this resume and role</p>
+            </div>
+        </div>
+
+        <div class="ai-modal-body">
+            <div id="interviewQuestions">
+                <p class="empty-keywords">
+                    Click generate to prepare interview questions.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     
     const dropZone = document.getElementById('dropZone');
@@ -652,6 +993,8 @@
             }
 
             const { blob_path: blobPath } = await uploadResponse.json();
+            latestResumeBlob = blobPath;
+            latestJobDescription = jobDesc;
 
             // Step 2: Request ATS scoring
             const scoreResponse = await fetch('/api/optimize_resume', {
@@ -669,6 +1012,7 @@
             }
 
             const result = await scoreResponse.json();
+            latestResult = result;
             displayResults(result);
 
         } catch (err) {
@@ -730,6 +1074,7 @@
         const missingEl = document.getElementById('missing');
         missingEl.innerHTML = '';
         const missingKeywords = result.missing_keywords || [];
+
         if (missingKeywords.length === 0) {
             missingEl.innerHTML =
                 '<p class="empty-keywords">No missing keywords — great match!</p>';
@@ -741,9 +1086,157 @@
                 missingEl.appendChild(span);
             });
         }
-
         setVisible('results', true);
     }
+    // Store the latest analysis result
+    let latestResult = null;
+    let latestResumeBlob = '';
+    let latestJobDescription = '';
+
+    // AI Feedback button
+    document.getElementById('feedbackBtn').addEventListener('click', () => {
+        if (!latestResult || !latestResult.feedback) {
+            return;
+        }
+
+        const feedback = latestResult.feedback;
+
+        document.getElementById('modalFeedbackSummary').textContent =
+            feedback.summary || 'No feedback available.';
+
+        const improvementsEl =
+            document.getElementById('modalFeedbackImprovements');
+
+        improvementsEl.innerHTML = '';
+
+        (feedback.improvements || []).forEach((improvement) => {
+            const li = document.createElement('li');
+            li.textContent = improvement;
+            improvementsEl.appendChild(li);
+        });
+
+        document.getElementById('modalFeedbackAction').textContent =
+            feedback.action || 'No recommended action available.';
+
+        document.getElementById('feedbackModal').classList.add('active');
+    });
+
+    // Close AI modals
+    document.querySelectorAll('[data-close]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const modalId = button.dataset.close;
+            document.getElementById(modalId).classList.remove('active');
+        });
+    });
+
+    // Close when clicking the background
+    document.querySelectorAll('.ai-modal').forEach((modal) => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // AI Interview Prep button
+    document.getElementById('interviewBtn').addEventListener('click', async () => {
+        if (!latestResult) {
+            return;
+        }
+
+        const interviewModal =
+            document.getElementById('interviewModal');
+
+        const questionsContainer =
+            document.getElementById('interviewQuestions');
+
+        // Open modal immediately
+        interviewModal.classList.add('active');
+
+        // Show loading state
+        questionsContainer.innerHTML = `
+            <div class="interview-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Generating personalized interview questions...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/api/interview_prep', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    resume_blob: latestResumeBlob,
+                    job_description: document.getElementById('jobDescription').value.trim()
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.error || 'Interview preparation failed.'
+                );
+            }
+
+            const questions = result.questions || [];
+
+            if (questions.length === 0) {
+                questionsContainer.innerHTML = `
+                    <p class="empty-keywords">
+                        No interview questions could be generated.
+                    </p>
+                `;
+                return;
+            }
+
+            questionsContainer.innerHTML = '';
+
+            questions.forEach((item, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'interview-question';
+
+                const question = item.question || '';
+                const answer = item.answer || '';
+
+                questionCard.innerHTML = `
+                    <div class="question-number">${index + 1}</div>
+
+                    <div class="question-content">
+                        <p class="question-text">${question}</p>
+
+                        <button
+                            type="button"
+                            class="answer-toggle"
+                            onclick="this.nextElementSibling.classList.toggle('visible')"
+                        >
+                            <i class="fas fa-lightbulb"></i>
+                            Show Suggested Answer
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+
+                        <div class="suggested-answer">
+                            <strong>Suggested Answer</strong>
+                            <p>${answer}</p>
+                        </div>
+                    </div>
+                `;
+
+                questionsContainer.appendChild(questionCard);
+            });
+
+        } catch (error) {
+            console.error('Interview prep error:', error);
+
+            questionsContainer.innerHTML = `
+                <p class="empty-keywords">
+                    ${error.message}
+                </p>
+            `;
+        }
+    });
 </script>
 
 </body>

@@ -1,32 +1,119 @@
-# Azure-AI-Resume-Screener
+# ResumeIQ
 
-An intelligent, serverless application that automates resume screening by analyzing how well candidate resumes match a job description. The tool extracts text from files, performs keyword matching, and calculates a semantic similarity score using AI.
+### AI-Powered Resume Screening & Interview Assistant
 
-### Here's how it works
+ResumeIQ is an AI-powered resume analysis application that evaluates how well a candidate's resume matches a specific job description and provides personalized improvement feedback and interview preparation.
 
-▸ The backend runs completely serverless using *Azure Functions*, meaning it handles file ingestion endpoints, api orchestration, and resource routing dynamically without managing physical servers.
+The application combines **Azure AI Document Intelligence**, **Microsoft Foundry GPT-4.1-mini**, **Azure Blob Storage**, and **Azure Functions** to create an end-to-end AI-assisted recruitment and career preparation workflow.
 
-▸ Text extraction is handled by *Azure AI Document Intelligence* using its prebuilt read model. Instead of extracting a giant, messy block of text, it uses **advanced OCR** to read documents with high fidelity, keeping text structure intact.  
+---
 
-▸ Alignment scoring is handled via *Azure OpenAI (GPT-4.1-mini)* using a strict **dual-layer evaluation script**. It calculates exact matches for required technologies while analyzing experience timelines and core technical depth.  
+## 🚀 Features
 
-▸ Beyond keyword matching, the tool evaluates candidate alignment using **text-embedding models**. It converts text into **numerical vectors** and calculates a **cosine similarity metric**, ensuring candidates are evaluated on overall meaning rather than just exact keywords.  
+### 📊 ATS Resume Analysis
 
-▸ All file data is persistent and secure. Uploaded documents are saved in a raw data container inside *Azure Blob Storage*, while the final calculated analytics reports are instantly saved into a designated reports container for clean audit trails.
+Upload a resume and provide a job description to receive an AI-generated compatibility analysis.
 
-### Project architecture
+The system provides:
 
-<p align="center">
-  <img src="images/diagram.svg" alt="AzureResumeScreener" width="900"/>
-</p>
+- Overall Match Score
+- Keyword Match score
+- Experience Alignment score
+- Skills Coverage score
+- Matched skills and keywords
+- Missing skills and keywords
 
+The ATS evaluation uses a structured scoring system:
 
-### Tech Stack
+| Category | Weight |
+|---|---:|
+| Keyword Match | 40 |
+| Experience Alignment | 30 |
+| Skills Coverage | 30 |
+| **Total** | **100** |
 
-1. Cloud & Serverless: Azure Functions, Azure Blob Storage, REST APIs  
+---
 
-2. AI & Document Intelligence: Azure OpenAI (GPT-4.1-mini & Text Embeddings), Azure AI Document Intelligence  
+### ✨ AI Feedback
 
-3. Core Backend: Python, NumPy, Requests  
+ResumeIQ goes beyond simply providing a score.
 
-4. Frontend UI: HTML5, CSS3, JavaScript
+The AI analyzes the ATS evaluation and provides:
+
+- A concise resume assessment
+- Specific areas for improvement
+- Practical recommendations
+- A single recommended action
+
+The feedback is displayed inside a dedicated modal so the main analysis interface remains clean.
+
+---
+
+### 🧠 AI Interview Prep
+
+ResumeIQ can generate interview questions specifically tailored to:
+
+- The candidate's resume
+- The target job description
+- The technologies and skills relevant to the role
+
+The system generates **5 personalized interview questions** covering areas such as:
+
+- Technical skills
+- Projects
+- Technologies
+- Resume experience
+- Role-specific knowledge
+
+---
+
+### 💡 Suggested Interview Answers
+
+Each generated interview question includes an optional suggested answer.
+
+Answers are designed to:
+
+- Be based on information present in the candidate's resume
+- Match the target role
+- Provide a useful starting point for interview preparation
+- Avoid inventing experience or qualifications
+
+Answers can be revealed individually using the **Show Suggested Answer** button.
+
+---
+
+## 🏗️ Architecture
+
+```text
+                    Resume + Job Description
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │  Azure Blob       │
+                    │  Storage          │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Azure AI          │
+                    │ Document          │
+                    │ Intelligence      │
+                    └─────────┬─────────┘
+                              │
+                         Resume Text
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Microsoft Foundry │
+                    │ GPT-4.1-mini      │
+                    └─────────┬─────────┘
+                              │
+              ┌───────────────┼────────────────┐
+              │               │                │
+              ▼               ▼                ▼
+        ATS Analysis      AI Feedback     Interview Prep
+              │               │                │
+              ▼               ▼                ▼
+        Match Report      Improvements    Questions +
+                                          Suggested
+                                           Answers 

@@ -205,6 +205,218 @@ INSTRUCTIONS:
         return _empty_score_result()
     return result
 
+def call_openai_for_feedback(
+    jd_text: str,
+    score_result: dict
+) -> dict:
+    """Generate concise resume improvement feedback using Foundry GPT."""
+
+    prompt = f"""You are an AI resume improvement assistant.
+
+Analyze the ATS evaluation below and provide concise, practical feedback
+to help the candidate improve their resume for this specific job.
+
+JOB DESCRIPTION:
+{jd_text}
+
+ATS EVALUATION:
+{json.dumps(score_result)}
+
+Return ONLY valid JSON with exactly this structure:
+
+{{
+  "summary": "A short overall assessment of the resume match.",
+  "improvements": [
+    "Specific improvement 1",
+    "Specific improvement 2"
+  ],
+  "action": "The single most important action the candidate should take."
+}}
+
+RULES:
+- Keep the feedback concise.
+- Base the feedback on the job description and ATS evaluation.
+- Focus on practical resume improvements.
+- Do not invent experience or skills.
+- Never tell the candidate to claim a skill they do not have.
+- If a required skill is missing, recommend learning or gaining experience
+  in that area rather than falsely adding it to the resume.
+"""
+
+    response = openai_client.chat.completions.create(
+        model=CHAT_MODEL_DEPLOYMENT_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI resume improvement assistant. "
+                    "Return ONLY valid JSON. "
+                    "Do not return markdown or code fences."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.3
+    )
+
+    raw_content = (response.choices[0].message.content or "").strip()
+
+    if not raw_content:
+        logger.error("Empty feedback response received from OpenAI.")
+        return {
+            "summary": "",
+            "improvements": [],
+            "action": ""
+        }
+
+    cleaned = _strip_json_fences(raw_content)
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        logger.error(
+            "Failed to parse feedback JSON: %s",
+            cleaned[:300]
+        )
+        return {
+            "summary": "",
+            "improvements": [],
+            "action": ""
+        }
+
+def call_openai_for_interview_prep(
+    jd_text: str,
+    resume_text: str
+) -> dict:
+    """Generate personalized interview questions using Foundry GPT."""
+
+    prompt = f"""You are an AI interview preparation assistant.
+
+    Generate exactly 5 interview questions for a candidate applying to the
+    job described below.
+
+    JOB DESCRIPTION:
+    {jd_text}
+
+    RESUME:
+    {resume_text}
+
+    For each question, also provide a concise suggested answer that the
+    candidate can use as a starting point.
+
+    Return ONLY valid JSON with exactly this structure:
+
+    {{
+    "questions": [
+        {{
+        "question": "Question 1",
+        "answer": "Suggested answer 1"
+        }},
+        {{
+        "question": "Question 2",
+        "answer": "Suggested answer 2"
+        }},
+        {{
+        "question": "Question 3",
+        "answer": "Suggested answer 3"
+        }},
+        {{
+        "question": "Question 4",
+        "answer": "Suggested answer 4"
+        }},
+        {{
+        "question": "Question 5",
+        "answer": "Suggested answer 5"
+        }}
+    ]
+    }}
+
+    RULES:
+    - Generate exactly 5 questions.
+    - Make the questions specific to this job description and resume.
+    - Include a mix of technical, project, and resume-based questions.
+    - Prefer realistic questions an interviewer could ask this candidate.
+    - Use skills, projects, technologies, and experience actually present in the resume.
+    - Do not invent experience, projects, skills, or achievements.
+    - Suggested answers must be based only on information supported by the resume.
+    - Do not encourage the candidate to falsely claim experience.
+    - Answers should be concise but useful, approximately 2-5 sentences.
+    - Technical answers should explain the concept clearly when appropriate.
+    - Do not provide multiple possible answers.
+    - Return ONLY valid JSON.
+    """
+
+    response = openai_client.chat.completions.create(
+        model=CHAT_MODEL_DEPLOYMENT_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI interview preparation assistant. "
+                    "Return ONLY valid JSON. "
+                    "Do not return markdown or code fences."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.4
+    )
+
+    raw_content = (response.choices[0].message.content or "").strip()
+
+    if not raw_content:
+        logger.error("Empty interview prep response received from OpenAI.")
+        return {
+            "questions": []
+        }
+
+    cleaned = _strip_json_fences(raw_content)
+
+    try:
+        result = json.loads(cleaned)
+
+        questions = result.get("questions", [])
+
+        if not isinstance(questions, list):
+            return {
+                "questions": []
+            }
+
+        clean_questions = []
+
+        for item in questions[:5]:
+            if not isinstance(item, dict):
+                continue
+
+            question = str(item.get("question", "")).strip()
+            answer = str(item.get("answer", "")).strip()
+
+            if question:
+                clean_questions.append({
+                    "question": question,
+                    "answer": answer
+                })
+
+        return {
+            "questions": clean_questions
+        }
+
+    except json.JSONDecodeError:
+        logger.error(
+            "Failed to parse interview prep JSON: %s",
+            cleaned[:300]
+        )
+        return {
+            "questions": []
+        }
 
 # azure function app
 
@@ -291,17 +503,39 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         raw_text = extract_text_from_blob(container_name, blob_name)
-        score_result = call_openai_for_scoring(jd_text, raw_text)
 
-        base_name = blob_name.rsplit(".", 1)[0] if "." in blob_name else blob_name
+        # Stage 1: ATS scoring
+        score_result = call_openai_for_scoring(
+            jd_text,
+            raw_text
+        )
+
+        # Stage 2: AI resume feedback
+        feedback_result = call_openai_for_feedback(
+            jd_text,
+            score_result
+        )
+
+        # Combine both results into one report
+        report = {
+            **score_result,
+            "feedback": feedback_result
+        }
+
+        base_name = (
+            blob_name.rsplit(".", 1)[0]
+            if "." in blob_name
+            else blob_name
+        )
+
         save_text_to_blob(
             "resume-reports",
             f"{base_name}_report.json",
-            json.dumps({"score": score_result}),
+            json.dumps(report),
         )
 
         return func.HttpResponse(
-            json.dumps(score_result),
+            json.dumps(report),
             status_code=200,
             mimetype="application/json",
         )
@@ -309,6 +543,78 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         logger.exception("Resume scoring failed.")
         return func.HttpResponse(
             json.dumps({"error": "Scoring failed. Please try again."}),
+            status_code=500,
+            mimetype="application/json",
+        )
+
+@app.route(
+    route="interview_prep",
+    methods=["POST"],
+    auth_level=func.AuthLevel.ANONYMOUS
+)
+def interview_prep(req: func.HttpRequest) -> func.HttpResponse:
+    """Generate personalized interview questions for a resume and job description."""
+
+    try:
+        payload = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            json.dumps({
+                "error": "Request body must be valid JSON."
+            }),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    resume_blob = (payload.get("resume_blob") or "").strip()
+    jd_text = (payload.get("job_description") or "").strip()
+
+    if not resume_blob or not jd_text:
+        return func.HttpResponse(
+            json.dumps({
+                "error": "'resume_blob' and 'job_description' are required."
+            }),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    if "/" not in resume_blob:
+        return func.HttpResponse(
+            json.dumps({
+                "error": "'resume_blob' must be in 'container/blob' format."
+            }),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    container_name, blob_name = resume_blob.split("/", 1)
+
+    try:
+        # Extract the resume text
+        raw_text = extract_text_from_blob(
+            container_name,
+            blob_name
+        )
+
+        # Generate interview questions with Foundry
+        interview_result = call_openai_for_interview_prep(
+            jd_text,
+            raw_text
+        )
+
+        return func.HttpResponse(
+            json.dumps(interview_result),
+            status_code=200,
+            mimetype="application/json",
+        )
+
+    except Exception:
+        logger.exception("Interview preparation failed.")
+
+        return func.HttpResponse(
+            json.dumps({
+                "error": "Interview preparation failed. Please try again."
+            }),
             status_code=500,
             mimetype="application/json",
         )
